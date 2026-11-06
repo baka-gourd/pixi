@@ -393,13 +393,14 @@ To setup a certain number of defaults for the usage of PyPI registries. You can 
 - `keyring-provider`: Allows the use of the [keyring](https://pypi.org/project/keyring/) python package to store and
   retrieve credentials.
 - `allow-insecure-host`: A list of host names (without protocol or port) for which TLS certificate verification should be disabled when accessing PyPI registries. This is useful when working with internal PyPI mirrors that use self-signed certificates. For disabling TLS verification globally for all connections, use [`tls-no-verify`](#tls-no-verify) instead.
+- `use-dist-info-metadata`: Whether to fetch standalone distribution metadata advertised by indexes (PEP 658/714). Defaults to `true`. Set to `false` when a download mirror does not provide `.metadata` files. Pixi reads metadata from wheels instead, using HTTP range requests when supported or downloading the wheel otherwise. This does not change the index or package URLs recorded in the lock file.
 
 ```toml title="config.toml"
 --8<-- "docs/source_files/pixi_config_tomls/main_config.toml:pypi-config"
 ```
 
 !!! Note "`index-url` and `extra-index-urls` are *not* globals"
-    Unlike pip, these settings, with the exception of `keyring-provider` will only modify the `pixi.toml`/`pyproject.toml`
+    Unlike pip, `index-url` and `extra-index-urls` will only modify the `pixi.toml`/`pyproject.toml`
     file and are not globally interpreted when not present in the manifest.
     This is because we want to keep the manifest file as complete and reproducible as possible.
 

@@ -947,6 +947,9 @@ pub struct PyPIConfig {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keyring_provider: Option<KeyringProvider>,
+    /// Whether to fetch standalone distribution metadata (PEP 658/714).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub use_dist_info_metadata: Option<bool>,
     /// Allow insecure connections to a host
     #[serde(default)]
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -1097,6 +1100,7 @@ impl PyPIConfig {
             index_url: other.index_url.or(self.index_url),
             extra_index_urls,
             keyring_provider: other.keyring_provider.or(self.keyring_provider),
+            use_dist_info_metadata: other.use_dist_info_metadata.or(self.use_dist_info_metadata),
             allow_insecure_host: self
                 .allow_insecure_host
                 .into_iter()
@@ -1118,8 +1122,14 @@ impl PyPIConfig {
             .unwrap_or(KeyringProvider::Disabled)
     }
 
+    /// Whether to fetch standalone distribution metadata. Defaults to true.
+    pub fn use_dist_info_metadata(&self) -> bool {
+        self.use_dist_info_metadata.unwrap_or(true)
+    }
+
     fn is_default(&self) -> bool {
         self.index_url.is_none()
+            && self.use_dist_info_metadata.is_none()
             && self.extra_index_urls.is_empty()
             && self.keyring_provider.is_none()
     }
@@ -2248,6 +2258,7 @@ impl Config {
             "pypi-config.extra-index-urls",
             "pypi-config.index-url",
             "pypi-config.keyring-provider",
+            "pypi-config.use-dist-info-metadata",
             "repodata-config",
             "repodata-config.disable-bzip2",
             "repodata-config.disable-sharded",
@@ -2657,6 +2668,12 @@ impl Config {
 
                 let subkey = key.strip_prefix("pypi-config.").unwrap();
                 match subkey {
+                    "use-dist-info-metadata" => {
+                        self.pypi_config.use_dist_info_metadata = value
+                            .map(|v| v.parse::<bool>())
+                            .transpose()
+                            .map_err(invalid_value(key))?;
+                    }
                     "index-url" => {
                         self.pypi_config.index_url = value
                             .map(|v| Url::parse(&v))
@@ -3915,6 +3932,7 @@ UNUSED = "unused"
                 ]),
                 index_url: Some(Url::parse("https://conda.anaconda.org/conda-forge").unwrap()),
                 keyring_provider: Some(KeyringProvider::Subprocess),
+                use_dist_info_metadata: None,
             },
             s3_options: S3OptionsMap(IndexMap::from([(
                 "bucket1".into(),

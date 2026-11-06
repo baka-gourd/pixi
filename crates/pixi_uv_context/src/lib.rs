@@ -52,6 +52,8 @@ pub struct UvResolutionContext {
     pub cache: Cache,
     pub in_flight: InFlight,
     pub keyring_provider: uv_configuration::KeyringProviderType,
+    /// Whether to fetch standalone distribution metadata (PEP 658/714).
+    pub use_dist_info_metadata: bool,
     pub concurrency: Concurrency,
     pub no_sources: NoSources,
     pub capabilities: IndexCapabilities,
@@ -232,6 +234,7 @@ impl UvResolutionContext {
             cache,
             in_flight: InFlight::default(),
             keyring_provider,
+            use_dist_info_metadata: config.pypi_config.use_dist_info_metadata(),
             concurrency,
             no_sources: NoSources::None,
             capabilities: IndexCapabilities::default(),
@@ -333,6 +336,7 @@ impl UvResolutionContext {
 
         let mut uv_client_builder =
             RegistryClientBuilder::new(base_client_builder, self.cache.clone())
+                .use_dist_info_metadata(self.use_dist_info_metadata)
                 .index_locations(index_locations.clone())
                 .index_strategy(index_strategy);
 

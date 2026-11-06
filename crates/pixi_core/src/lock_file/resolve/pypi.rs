@@ -562,6 +562,7 @@ pub async fn resolve_pypi(
 
         let mut uv_client_builder =
             RegistryClientBuilder::new(base_client_builder, context.cache.clone())
+                .use_dist_info_metadata(context.use_dist_info_metadata)
                 .index_locations(index_locations.clone())
                 .index_strategy(index_strategy)
                 .markers(&marker_environment);

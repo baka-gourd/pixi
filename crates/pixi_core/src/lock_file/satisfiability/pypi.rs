@@ -679,6 +679,7 @@ async fn read_local_package_metadata(
 
         let mut uv_client_builder =
             RegistryClientBuilder::new(base_client_builder, ctx.uv_context.cache.clone())
+                .use_dist_info_metadata(ctx.uv_context.use_dist_info_metadata)
                 .index_locations(index_locations.clone())
                 .index_strategy(index_strategy)
                 .markers(&marker_environment);
