@@ -281,6 +281,7 @@ rattler_build_types = { version = "0.1.22" }
 rattler_build_variant_config = { version = "0.1.24" }
 
 [patch.crates-io]
+uv-client = { path = "patches/uv-client" }
 version-ranges = { git = "https://github.com/astral-sh/pubgrub", rev = "d8efd77673c9a90792da9da31b6c0da7ea8a324b" }
 
 # Redirect crates.io's `reqwest-middleware` to a local shim that re-exports

@@ -12062,8 +12062,6 @@ dependencies = [
 [[package]]
 name = "uv-client"
 version = "0.0.98"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a54c9ecd7ffa382da0070e1cf0c402f0dd81d3ed03034665b84e25a7c11bf4e7"
 dependencies = [
  "anyhow",
  "astral-html",
