@@ -1,0 +1,58 @@
+diff --git a/crates/uv-client/src/registry_client.rs b/crates/uv-client/src/registry_client.rs
+index a82640f47..097242f65 100644
+--- a/crates/uv-client/src/registry_client.rs
++++ b/crates/uv-client/src/registry_client.rs
+@@ -59,6 +59,7 @@ pub struct RegistryClientBuilder<'a> {
+     cache: Cache,
+     base_client_builder: BaseClientBuilder<'a>,
+     metadata_range_request: MetadataRangeRequest,
++    use_dist_info_metadata: bool,
+ }
+ 
+ impl<'a> RegistryClientBuilder<'a> {
+@@ -71,9 +72,17 @@ impl<'a> RegistryClientBuilder<'a> {
+             cache,
+             base_client_builder: base_client_builder.redirect(RedirectPolicy::RetriggerMiddleware),
+             metadata_range_request,
++            use_dist_info_metadata: true,
+         }
+     }
+ 
++    /// Control standalone distribution metadata requests (PEP 658/714).
++    #[must_use]
++    pub fn use_dist_info_metadata(mut self, enabled: bool) -> Self {
++        self.use_dist_info_metadata = enabled;
++        self
++    }
++
+     #[must_use]
+     pub fn with_reqwest_client(mut self, client: reqwest::Client) -> Self {
+         self.base_client_builder = self.base_client_builder.custom_client(client);
+@@ -214,6 +223,7 @@ impl<'a> RegistryClientBuilder<'a> {
+             )),
+             parse_memory: Arc::new(Semaphore::new(8 * 1024 * 1024)),
+             metadata_range_request: self.metadata_range_request,
++            use_dist_info_metadata: self.use_dist_info_metadata,
+         })
+     }
+ }
+@@ -243,6 +253,8 @@ pub struct RegistryClient {
+     parse_memory: Arc<Semaphore>,
+     /// The behavior when metadata range requests are unsupported.
+     metadata_range_request: MetadataRangeRequest,
++    /// Whether to request standalone metadata advertised by the index.
++    use_dist_info_metadata: bool,
+ }
+ 
+ /// The behavior when wheel metadata cannot be fetched with HTTP range requests.
+@@ -1154,7 +1166,9 @@ impl RegistryClient {
+         } = wheel;
+ 
+         // If the metadata file is available at its own url (PEP 658), download it from there.
+-        if let Some(hashes) = &file.dist_info_metadata {
++        if self.use_dist_info_metadata
++            && let Some(hashes) = &file.dist_info_metadata
++        {
+             let mut url = url.clone();
+             let path = format!("{}.metadata", url.path());
+             url.set_path(&path);
